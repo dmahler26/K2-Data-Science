@@ -64,7 +64,7 @@ The first step is to investigate the key attribute of interest: interest level.
 
 Summing the number of records in each interest level yields the following results:
 
-![](figures\MVP_BarChart_Number of Listings per Interest Level.png)
+![MVP_BarChart_Number of Listings per Interest Level.png](figures/MVP_BarChart_Number of Listings per Interest Level.png)
 
 It is clear that low interest level listings dominate the data set, whilst high interest level listings appear to be somewhat of a rare occurance. Calculating the actual numbers for these counts yields the following proportions: 
 
@@ -103,7 +103,7 @@ The median for high interest level listings is 24% less than that of the populat
 
 In addition to the boxplots above, it is useful to see the proportions of where listings fall in terms of price for each interest level. The first approach taken was determining which standard deviation each price fell within, however as mentioned earlier due to the skeweness in price this did not yield much useful information. Instead, splitting price into 4 quartiles (25th, 50th, 75th, 100th) gave a much clearer picture:
 
-![MVP_Heatmap_Price Quartile per Interest Level](figures/MVP_Heatmap_Price Quartile per Interest Level.png)
+![MVP_Heatmap_Price Quartile per Interest Level.png](figures/MVP_Heatmap_Price Quartile per Interest Level.png)
 
 From the heatmap above one can see that a clear majority of high interest listings fall within 1st (lowest) price quartile, whereas majority of low interest in the 3rd and 4th quartile. This helps confirm that having lower price is a key attribute for high interest, even if the differences in the boxplots are not as significant as one might have expected.
 
