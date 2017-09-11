@@ -103,7 +103,7 @@ The median for high interest level listings is 24% less than that of the populat
 
 In addition to the boxplots above, it is useful to see the proportions of where listings fall in terms of price for each interest level. The first approach taken was determining which standard deviation each price fell within, however as mentioned earlier due to the skeweness in price this did not yield much useful information. Instead, splitting price into 4 quartiles (25th, 50th, 75th, 100th) gave a much clearer picture:
 
-![](figures/MVP_Heatmap_PriceQuartilePerInterestLevel.png)
+![](figures/MVP_Heatmap_PriceQuartileperInterestLevel.png)
 
 From the heatmap above one can see that a clear majority of high interest listings fall within 1st (lowest) price quartile, whereas majority of low interest in the 3rd and 4th quartile. This helps confirm that having lower price is a key attribute for high interest, even if the differences in the boxplots are not as significant as one might have expected.
 

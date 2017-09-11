@@ -8,9 +8,9 @@ This project is inspired from the [NYC Rental Listing Kaggle challenge](https://
 For the purposes of this project, however, we will simply be exploring the data and tring to try and provide a thorough investigation to the following question:
 > **What are the key influencers of the interest level for a listing?**
  
-As part of the [K2 Data Science]() curriculum, the focus of this data exploration will be on data cleaning, basic numerical and statistical analysis, and data visualization. This open-ended project should lay the foundation for future analysis in returning to Kaggle's original prompt of building a method for predicting interst level in a given rental listing.
+As part of the [K2 Data Science](http://www.k2datascience.com/) curriculum, the focus of this data exploration will be on data cleaning, basic numerical and statistical analysis, and data visualization. This open-ended project should lay the foundation for future analysis in returning to Kaggle's original prompt of building a method for predicting interst level in a given rental listing.
 
-This notebook will extend from the analysis and findings in the [MVP analysis](.\README - MVP Analysis.ipynb), conducting a more in-depth exploration of the possible influencers of interest level.
+This notebook will extend from the analysis and findings in the [MVP analysis](README_MVP.ipynb), conducting a more in-depth exploration of the possible influencers of interest level.
 
 ## Goals
 
@@ -37,7 +37,7 @@ As for the analysis conducted, it is important to note the following:
 
 ## Approach
 
-Before conducting any data analysis, it was necessary to perform some basic cleaning of the data. This process was documented in the [MVP analysis](./README - MVP Analysis.ipynb). In total, only 64 records out of the original 49,352 had to be removed due to inconsistencies/errors in price, location, and type of building (i.e. non-residential)
+Before conducting any data analysis, it was necessary to perform some basic cleaning of the data. This process was documented in the [MVP analysis](README - MVP Analysis.ipynb). In total, only 64 records out of the original 49,352 had to be removed due to inconsistencies/errors in price, location, and type of building (i.e. non-residential)
 
 The Pandas, Matplotlib, and Seaborn packages were for plotting and heatmaps to help visualize areas of interest / correlation.
 
@@ -47,11 +47,11 @@ Since interest level exists as a categorical attribute ('low', 'medium', 'high')
 
 ## Exploring Price (cont.)
 
-(See [price analysis notebook](./nyc_re_price_analysis.ipynb) for details)
+(See [price/room analysis notebook](nyc_re_price_room_analysis.ipynb) for details)
 
 With the addition of an integer value for interest level, it is possible to create a more continuous plot of changing interest level with increasing price. For the purpose of these charts, integer values of [0, 0.5, 1] have been chosen for low, medium, and high interest, respectively. The reasoning for this numbering convention is mostly to provide a indicator in the 0-1 range when taking mean interest levels for specific groupings. In the bar charts below, price has been split into \$500 intervals:
 
-![](./figures/Price Analysis_Bar Chart_Price.png)
+![](figures/PriceAnalysis_BarChart_Price.png)
 
 One can clearly observe a rapidly decreasing mean interest level as price increases beyond \$2,500. It is important to note that whilst the first two intervals show the highest mean interest level, they cannot be relied on too accurately due to the low number of records that fall in these ranges. Regardless, downward trend in interest level is still observed in the subsequent intervals - more data would simply be needed to extend certainty to the lowest priced listings.
 
@@ -59,7 +59,7 @@ As initially mentioned in the MVP analysis, price alone is likely not to capture
 
 In calculating total room counts the resultings total price per room (PPR), said adjustments have been made. For price per bedroom, studios have simply been given the extra weight of actually having a bedroom versus having a total of 0. Plotting boxplots for PPR for total rooms, bedrooms, and bathrooms yields the following:
 
-![](./figures/Price Analysis_Boxplot_PPR.png)
+![](figures/PriceAnalysis_Boxplot_PPR.png)
 
 One can see a similar trend in decreasing price with increasing interest level, and comparing the medians to population medians for overall PPR yields:
 
@@ -83,21 +83,21 @@ In this case, the percentage difference is significantly more than the original 
 
 As a final analysis of PPR, the procedure above of splitting listings into intervals and observing mean interest level is repeated, using \$200 PPR intervals:
 
-![](./figures/Price Analysis_Bar Chart_PPR.png)
+![](figures/PriceAnalysis_BarChart_PPR.png)
 
 Whilst the same downard trend in interest level with increasing PPR is expected, what is more noteworthy is that said trend is much more consistent and smooth versus the original which plotted regular price. This agrees with the assumption that PPR more accurately captures the actual value of a rental.
 
 ## Exploring Number of Rooms
 
-(See [price analysis notebook](./nyc_re_price_analysis.ipynb) for details)
+(See [price/room analysis notebook](nyc_re_price_room_analysis.ipynb) for details)
 
 Having explored the connections between price per room and interest level, and discovering that the number of bedrooms in particular have a strong connection with interest level, the next obvious step is to analyze which room counts (disregarding price) show the highest levels of interest.
 
-![](./figures/Room Analysis_Heatmap_Bed Bath High Interest Count.png)
+![](figures/RoomAnalysis_Heatmap_BedBathHighInterestCount.png)
 
 From the heatmaps above, one can see the majority of both overall and high interest listings fall in the 0-3 bedroom range. However, whilst total numbers of bedrooms and bathrooms extend to 8+, high interest listings reach no more than 5 bedrooms, 4 bathrooms. The overlap in the most popular region, however, demands additional analysis for discerning whether the presence of high interest listings is enough to outweigh the large number with low interest. One approach is to take a look at the mean interest level for each bedroom/bathroom combination:
 
-![](./figures/Room Analysis_Heatmap_Bed Bath Interest Mean.png)
+![](figures/RoomAnalysis_Heatmap_BedBathInterestMean.png)
 
 The heatmap above utilizes interest level weights [0, 0.5, 1], resulting in means ranging from 0 to 1. With a population mean interest level of 0.19, the areas above that appear in darker blues are those which should be noted as showing higher interest than expected. The combinations of 2 bedrooms & 1 bathroom, and 3 bedrooms & 1 bathrooms are the two most signficiant results, which concurs with the regions where a relatively large number of high interest lisings were recorded. The 4 bedroom & 2 bathroom also shows high interest level relative to the population mean, but due to the absence of such listings in the higher interest level counts it is more a result of medium interest listings influencing the mean than a signficant amount of higher interest.
 
@@ -105,22 +105,22 @@ It is important to note again that with the interest level weights used, medium 
 
 ## Exploring Location
 
-(See [location analysis notebook](./nyc_re_location_analysis.ipynb) for details)
+(See [location analysis notebook](nyc_re_location_analysis.ipynb) for details)
 
 Location is always touted as one of the most important factors in real estate. Consequently it only makes sense to investigate the potential correlation between location throughout NYC and the interest level. The most immediate step is to map out the occurance of listings at each interest level, which should provide insight as to whether there are any distinguishable areas with concentrations of different interest levels:
 
 (*Note some maps may be slow to load*)<br>
-[high interest map](./maps/property_markers_ilevel_high.html)<br>
-[medium interest map](./maps/property_markers_ilevel_medium.html)<br>
-[low interest map](./maps/property_markers_ilevel_low.html)<br>
-[combo interest map](./maps/property_markers_ilevel_all.html)
+[high interest map](maps/property_markers_ilevel_high.html)<br>
+[medium interest map](maps/property_markers_ilevel_medium.html)<br>
+[low interest map](maps/property_markers_ilevel_low.html)<br>
+[combo interest map](maps/property_markers_ilevel_all.html)
 
 In the high interest map there are clearly certain regions of concentrated high interest listings. However, also taking into consideration the medium and low interest it becomes evident that there needs to be a way of distinguishing regions in which there is a significant enough occurance of high interest such that it outweighs the general abundance of low interest listings. For example, it would be an error to assume a region is high interest due to an observed concentration, when in fact there a disproportionately high concentration of low interest listings in the same area.
 
 One approach to this problem is to again give each type of interest level a weight, except this time help the rare occurances of high interest listings show by adjusting weights according to their expected probability. Thus, for example, with a weight of +1 and proportion of 7.8%, each high interest listing is weighed at 1/0.078 = ~12. Using a set of 2 different weights for low, medium, and high, the following maps were generated:
 
-[heat map: weighted interest level v1](./maps/hmap_weighted_ilvl.html) (low = -1, medium = 0, high = 1)<br>
-[heat map: weighted interest level v2](./maps/hmap_weighted_v2_ilvl.html) (low = -1, medium = 0.5, high = 1)
+[heat map: weighted interest level v1](maps/hmap_weighted_ilvl.html) (low = -1, medium = 0, high = 1)<br>
+[heat map: weighted interest level v2](maps/hmap_weighted_v2_ilvl.html) (low = -1, medium = 0.5, high = 1)
 
 Both maps show distinct areas of higher interest levels, with the key disctintion being the second version shifts and amplifies certain areas with the presence of medium interest listings. The following areas show a significant proportion of higher interest, all of which located within Manhattan:
 - Tribeca
@@ -140,11 +140,11 @@ In order to ultimately provide a prediction tool which utlizes information about
 
 ## Exploring Features
 
-(See [feature analysis notebook](./nyc_re_features_analysis.ipynb) for details)
+(See [feature analysis notebook](nyc_re_features_analysis.ipynb) for details)
 
 having identified and tallied the features present using regular expressions, the top 20 features in terms of total counts were selected for analysis. Each listing was given a set of flags indicatiting whether each of these features was present, which allowed comparing the mean occurances of each feature across interest levels. In order to distinguish more easily between positive and negative leaning means, the percent different to the overall mean occurance for a given feature was deducted from each mean to yield the following heatmap:
 
-![](./figures/Features_Heatmap_Mean Delta.png)
+![](figures/Features_Heatmap_MeanDelta.png)
 
 The blue strips indicate a signficantly more frequent feature at the given interest level. Consequently, for high interest it is evident that 'furnished', 'king sized br', 'parking', and 'renovated' are all relatively common features. 
 
@@ -154,13 +154,13 @@ Although the relationships may note be quite as significant, it may also be wort
 
 ## Other Misc. Attributes
 
-(See [feature analysis notebook](./nyc_re_features_analysis.ipynb) for details)
+(See [feature analysis notebook](nyc_re_features_analysis.ipynb) for details)
 
 There are still a few columns with valuable information which have not been explored yet: photos, and description.
 
 Analyzing the quality or usefulness of the photos is beyond the current scope of this project, but rather than ignore that data entirely it is at least possible to see if the number of photos provided has any influence on interest level:
 
-![](./figures/Features_Bar Chart_N Photos.png)
+![](figures/Features_BarChart_NPhotos.png)
 
 | Interest Level | % w/ Photos |
 |:-:|:-:|
@@ -172,7 +172,7 @@ From both the bar charts and percentages above, it is evident that the absence o
 
 Analyzing description text itself is also beyond the scope of this project, but it possible to see if there is any correlation with the length of the description.
 
-![](./figures/Features_Bar Chart_Description.png)
+![](figures/Features_BarChart_Description.png)
 
 | Interest Level | % w/ Desc. |
 |:-:|:-:|
@@ -184,7 +184,7 @@ Whilst the overall percentage of low interest missing description is not quite a
 
 The above procedures can also be repeated for features to see if the number of features has any impact on interest level:
 
-![](./figures/Features_Bar Chart_N Features.png)
+![](figures/Features_BarChart_NFeatures.png)
 
 | Interest Level | % w/ Features |
 |:-:|:-:|
