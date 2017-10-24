@@ -1,5 +1,8 @@
 Data Cleaning:
-- loan_status: ok to treat charged off as default?
-- policy: any info on what this is? LC is not very helpful. It may have importance for the out of policy: charged off loan status so do not want to dismiss it just yet.
-- 'x months ago' variables: do these simply need to be dropped due to time sensitiviy? Aka, this is all from back in ~2015, and only the most recent loans will have the x months ago fields vs older records which become N/A
+- Remove all current loans
+- Remove all end-of-loan values/summaries
+- Treating late as default
 
+EDA:
+
+Classification MVP:
