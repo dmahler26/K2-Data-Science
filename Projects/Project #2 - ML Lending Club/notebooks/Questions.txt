@@ -6,3 +6,7 @@ Data Cleaning:
 EDA:
 
 Classification MVP:
+- loss: hinge, log, etc. How do we know which to use?
+- fit_intercept: what situations call for setting true vs false
+- thresholds, recalls, precisions: shape different? thresholds missing 1 value vs others?
+- models taking a long time to compute. Suggested approaches? Cannot run grid/random search on certain models since even 1 iteration takes 10+ seconds. Worst case 1 minute. Just ignore those models?
