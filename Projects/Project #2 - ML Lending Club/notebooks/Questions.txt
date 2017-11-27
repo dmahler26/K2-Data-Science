@@ -1,12 +1,12 @@
-Data Cleaning:
-- Remove all current loans
-- Remove all end-of-loan values/summaries
-- Treating late as default
+Log Reg:
+- Poly features + Standard Scaler. Sequence important?
+- Weird behavior with PR curve. Div by 0 on calculating F score.
+- Recommended procedure for testing non-poly versus poly. Repeat whole procedure twice? (feature selection, PCA, etc.). Include from the start and let regularization etc. handle it?
+- Extreme values for C (< 1e-6) recommended for models. Is this too much?
+- Make sense to try poly features with each model?
+- Sequence of feature selectio, grid search etc. e.g RFE first, then grid search, or perform RFE on optimal grid search model, or both?
 
-EDA:
-
-Classification MVP:
-- loss: hinge, log, etc. How do we know which to use?
-- fit_intercept: what situations call for setting true vs false
-- thresholds, recalls, precisions: shape different? thresholds missing 1 value vs others?
-- models taking a long time to compute. Suggested approaches? Cannot run grid/random search on certain models since even 1 iteration takes 10+ seconds. Worst case 1 minute. Just ignore those models?
+SVC
+- Gamma >= 1 causes extreme fitting times, even with reduced sample size (e.g. 2000)
+- Normalization vs. standard scaler. Need to normalize OHE features as well? Why does it change binary feature values from [0, 1]?
+- Should be no issue with scaling then normalizing?
