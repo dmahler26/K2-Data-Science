@@ -4,6 +4,8 @@ import numpy as np
 import time
 import re
 
+from os import path
+
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import seaborn as sns
@@ -11,9 +13,8 @@ import seaborn as sns
 from sklearn.base import BaseEstimator, TransformerMixin
 
 from sklearn.preprocessing import StandardScaler, Normalizer
-from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score, RandomizedSearchCV, cross_val_predict, learning_curve
+from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score, RandomizedSearchCV, cross_val_predict, learning_curve, validation_curve
 from sklearn.metrics.scorer import make_scorer
-
 from sklearn.metrics import confusion_matrix, f1_score, recall_score, precision_score, precision_recall_curve, fbeta_score
 from sklearn.feature_selection import SelectFromModel, SelectKBest, SelectPercentile, RFECV, f_classif
 
@@ -246,8 +247,13 @@ def gs_score_summary(gs):
     Prints the best scoring results for each scoring method supplied to a grid search.
     '''
     scores = gs.scoring
+    gs_dict = {}
+    #gs_dict['params'] = gs.cv_results_['params']
+    df_params = pd.DataFrame(gs.cv_results_['params'])
+    
     print('-'*20)
     for score in scores:
+        gs_dict[score] = gs.cv_results_['mean_test_'+str(score)]
         i = np.argmin(gs.cv_results_['rank_test_' + str(score)])
         print('Best {}:'.format(score.title()))
         print('Params: {}'.format(gs.cv_results_['params'][i]))
@@ -255,6 +261,10 @@ def gs_score_summary(gs):
         for s in scores:
             print('{} = {}'.format(s.title(), gs.cv_results_['mean_test_'+str(s)][i]))
         print('-'*20)
+        
+    df = pd.concat([pd.DataFrame(gs_dict), df_params], axis=1)
+    
+    return df
 
         
 def print_cvs(cvs, scoring='CV'):
@@ -262,31 +272,84 @@ def print_cvs(cvs, scoring='CV'):
     Prints mean score and standard deviation for a cross_val_score
     '''
     print('Mean {} score = {:.3f} (+/- {:.3f})'.format(scoring, cvs.mean(), cvs.std()))
+
+###    
+def plot_validation_curves(base_estimator, X, y, param_grid, scoring, log=None, cv=None, n_jobs=1, verbose=0, plotsize=(8,5), ncols=2, title='Parameter Validation Curves'):                        
+    n_params = len(param_grid)
+    nrows = n_params//ncols + n_params%ncols
+    plt.clf()
+    fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(plotsize[0]*ncols, plotsize[1]*nrows))
+    scores = {}
+    colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+    for i, (param, param_range) in enumerate(param_grid.items()):
+        scores[param] = {}
+        for j, (score_label, scorer) in enumerate(scoring.items()):
+            train, val = validation_curve(estimator=base_estimator, X=X, y=y, param_name=param, param_range=param_range, cv=cv, scoring=scorer)
+            
+            train_mean = np.mean(train, axis=1)
+            train_std = np.std(train, axis=1)
+            val_mean = np.mean(val, axis=1)
+            val_std = np.std(val, axis=1)
+            if type(axs) is np.ndarray:
+                ax =  axs.ravel()[i]
+            else:
+                ax = axs
+                
+            ax.plot(param_range, train_mean, ls='--', color=colors[j], label='Train {}'.format(score_label.title()))
+            
+            ax.plot(param_range, val_mean, color=colors[j], label='CV {}'.format(score_label.title()))
+            ax.fill_between(param_range, val_mean - val_std, val_mean + val_std, alpha=0.2, color=colors[j])
+            
+            ax.set_xlabel(param)
+            ax.set_ylabel('Score')
+            ax.legend()
+            if log is not None and param in log:
+                ax.set_xscale('log')
+            
+            scores[param][score_label] = {}
+            scores[param][score_label]['train'] = train
+            scores[param][score_label]['train_mean'] = train_mean
+            scores[param][score_label]['train_std'] = train_std
+            scores[param][score_label]['val'] = val
+            scores[param][score_label]['val_mean'] = val_mean
+            scores[param][score_label]['val_std'] = val_std
+    
+    plt.suptitle(title, fontsize=16)
+    fig.tight_layout(rect=[0, 0, 1, 0.97])
     
     
-def plot_learning_curve(estimator, X, y, scoring=None, train_sizes=[0.1, 0.325, 0.55 , 0.775, 1.], cv=None, random_state=None, n_jobs=1, figsize=(10,5), xlim=None, ylim=None, title=None, subplots=False):
+    plt.show()
+    return scores
+###
+
+def plot_learning_curve(estimator, X, y, scoring=None, train_sizes=[0.1, 0.325, 0.55 , 0.775, 1.], cv=None, random_state=None, n_jobs=1, figsize=(10,5), xlim=None, ylim=None, title=None, subplots=False, verbose=0):
     '''
     Plots the learing curve for a given estimator and datasets X, y. Can take a single scorer or list of scorers, and plot on the same axes
     or use individual subplots for each depending on the subplots=True/False param.
     '''
-    scoring = list(scoring)
+    if type(scoring) is not list:
+        scoring = [scoring]
     
     colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
     
     if subplots:
-            fig, axs = plt.subplots(len(scoring),1, figsize=figsize)
+        fig, axs = plt.subplots(len(scoring),1, figsize=figsize)
     else:
         axs = [plt.figure(figsize=figsize).gca()] * len(scoring)
           
     for i, (score, ax) in enumerate(zip(scoring, axs)):
         try:
-            if re.search('^f[1-9]', score):
-                scorer = make_scorer(fbeta_score, beta=int(score[1]))
+            f = re.search('^[Ff]([0-9]\.?[0-9]*)', score)
+            if f:
+                scorer = make_scorer(fbeta_score, beta=float(f.group(1)))
             else:
                 scorer = score
             lc = learning_curve(estimator=estimator, X=X, y=y, train_sizes=train_sizes, scoring=scorer, cv=cv, 
-                                random_state=random_state, n_jobs=n_jobs)
+                                random_state=random_state, n_jobs=n_jobs, verbose=verbose)
+                                     
             ax.plot(lc[0], np.mean(lc[1], axis=1), label='Train ({})'.format(score.title()), ls='--', alpha=0.5, color=colors[i], lw=2)
+            ax.fill_between(lc[0], np.mean(lc[1], axis=1) - np.std(lc[1], axis=1), np.mean(lc[1], axis=1) + np.std(lc[1], axis=1), alpha=0.15)
+                                     
             ax.plot(lc[0], np.mean(lc[2], axis=1), label='Validate ({})'.format(score.title()), color=colors[i], lw=2)
             
             if xlim is not None:
@@ -410,7 +473,7 @@ def plot_gs_param(gs, set_xscale=False, ylim=(0,1), val_label=True, figsize=(12,
             sample_score_std = results['std_%s_%s' % (sample, scorer)]
             ax.fill_between(X_axis, sample_score_mean - sample_score_std,
                             sample_score_mean + sample_score_std,
-                            alpha=0.1 if sample == 'test' else 0, color=colors[i])
+                            alpha=0.15 if sample == 'test' else 0, color=colors[i])
             ax.plot(X_axis, sample_score_mean, style, color=colors[i],
                     alpha=1 if sample == 'test' else 0.7,
                     label="%s (%s)" % (scorer, 'val' if (val_label and sample=='test') else sample))
@@ -558,6 +621,69 @@ def plot_sfm(estimator, X, y, p_range=np.arange(0, 3.1, 0.5), scoring='accuracy'
     
     return results
 ###
+def plot_skb(estimator, X, y, k_range=None, scoring='accuracy', cv=3, n_jobs=1, figsize=(12,8), verbose=0):
+    run_time(reset=True)
+    
+    score_mean = []
+    score_std = []
+    
+    if k_range is None:
+        k_range = np.arange(1,X.shape[1],1)
+    n = len(k_range)
+    
+    if verbose > 0:
+        print("Fitting {} folds for each of {} candidates, totalling {} fits".format(cv, n, cv*n))
+    
+    for i, k in enumerate(k_range):
+        skb = SelectKBest(score_func=f_classif, k=k)
+        X_skb = skb.fit_transform(X, y)
+             
+        f_search = re.search('[Ff]([0-9])', scoring)
+        if f_search:
+            scorer=make_scorer(fbeta_score, beta=float(f_search.group(1)))
+        else:
+            scorer=scoring
+
+        cvs = cross_val_score(estimator=estimator, X=X_skb, y=y, scoring=scorer, cv=3, n_jobs=n_jobs)
+        score_mean.append(cvs.mean())
+        score_std.append(cvs.std())
+        
+        if verbose > 0 and i%max(1,(100-10*verbose)) == 0:
+            print("Done {} tasks | elapsed: {}".format((i+1)*cv, run_time(print_time=False, return_time=True)))
+    
+    if verbose > 0:
+        print("Done {} out of {} | elapsed: {} finished".format(cv*n, cv*n, run_time(print_time=False, return_time=True)))
+    
+    score_mean = np.array(score_mean)
+    score_std = np.array(score_std)
+    
+    plt.clf()
+    plt.figure(figsize=figsize)
+    
+    p = plt.plot(k_range, score_mean)
+    plt.fill_between(k_range, score_mean - score_std, score_mean + score_std, color=p[0].get_color(), alpha=0.15)
+    
+    ylim=plt.ylim()
+    
+    best_index = np.nanargmax(score_mean)
+    best_k = k_range[best_index]
+    best_score = score_mean[best_index]
+    plt.plot([best_k,]*2, [ylim[0], best_score], ls='--', color='k', marker='x', markeredgewidth=3, ms=8, lw=1)
+    plt.annotate('{:.3f}'.format(best_score), (best_k+(plt.xlim()[1]-plt.xlim()[0])*.01, best_score+(ylim[1]-ylim[0])*.01))
+    plt.annotate('{:.1f}'.format(best_k), (best_k+(plt.xlim()[1]-plt.xlim()[0])*.01, ylim[0]+(ylim[1]-ylim[0])*.01))
+    
+    plt.ylim(ylim)
+    plt.xlabel('k')
+    plt.ylabel('{} Score'.format(scoring.title()))
+    plt.title('SelectKBest Scores ({})'.format(scoring.title()))
+    plt.show()
+    
+    results = {'k': np.array(k_range),
+               'score_mean': score_mean,
+               'score_std': score_std}
+    
+    return results
+###
 def plot_gs_param_dual(gs, scoring, swap_axes=False, cmap='GnBu', power_scale=1, cbar=True, figsize=(12,9)):
     '''
     Plot scores with varying grid search param values (only compatiable with single param grid searches)
@@ -599,6 +725,12 @@ def plot_gs_param_dual(gs, scoring, swap_axes=False, cmap='GnBu', power_scale=1,
 
 ### MISC HELPER FUNCTIONS ###
 ###
+def saveplot(plot, filename, ext='png', filpath=['..','reports', 'figures']):
+    if not re.match('^.*\.*$',filename):
+        filename = filename + '.' + ext
+    fp = ['..','reports', 'figures', filename]
+    plot.savefig(path.join(*fp), dpi='figure', bbox_inches='tight')
+###
 def rank_array(array, absolute=False, ascending=True):
     if absolute:
         temp = abs(array)
@@ -628,15 +760,18 @@ def run_time(reset=False, print_time=True, return_time=False, pretty=True):
         m = td//60
         s = td%60
         ms = 1000*(s%1)
-        if print_time:
-            if pretty:
+        
+        if pretty:
                 display = 'Time: '
                 display += ('{:.0f}min '.format(m) if m > 0 else '')
                 display += ('{:.0f}s '.format(s) if (s > 1 and m > 0) else ('{:.2f}s '.format(s) if (s > 1) else ''))
                 display += ((str(round(ms))+'ms ') if (s < 1) else '')
-            else:
-                display = td
+        else:
+            display = td
+            
+        if print_time:
             print(display)
+            
         if return_time:
-            return td
+            return display[6:] if pretty else td
 ###
