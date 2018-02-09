@@ -74,3 +74,9 @@ target/
 
 # exclude docs folder (added)
 /docs/
+
+# custom
+Makefile
+tox.ini
+test_environment.py
+/references/
